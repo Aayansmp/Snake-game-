@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Fredoka One', cursive;
+            overflow: hidden;
+        }
+
+        #gameTitle {
+            font-family: 'Fredoka One', cursive;
+            font-size: 50px;
+            color: #4CAF50;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+            animation: slideIn 2s ease-out;
+        }
+
+        @keyframes slideIn {
+            0% {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        #welcomeScreen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        #welcomeMessage {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 36px;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        #nameInput {
+            font-size: 24px;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            width: 200px;
+            border-radius: 5px;
+            border: 1px solid #4CAF50;
+        }
+
+        #startButton {
+            font-size: 24px;
+            color: white;
+            background-color: #4CAF50;
+            border: none;
+            padding: 12px 25px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-family: 'Fredoka One', cursive;
+            text-transform: uppercase;
+            transition: transform 0.2s ease;
+        }
+
+        #startButton:hover {
+            opacity: 0.9;
+            transform: scale(1.1);
+        }
+
+        canvas {
+            background-color: black;
+            border: 1px solid white;
+        }
+
+        #scoreBoard {
+            margin-top: 10px;
+            font-size: 24px;
+            color: black;
+        }
+
+        #gameOverScreen {
+            display: none;
+            background-color: rgba(255, 255, 255, 0.9);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: black;
+            z-index: 1;
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        #gameOverText {
+            font-size: 48px;
+            margin-bottom: 20px;
+            letter-spacing: 3px;
+        }
+
+        #playAgainButton {
+            padding: 12px 25px;
+            font-size: 24px;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #007bff;
+            font-family: 'Fredoka One', cursive;
+            text-transform: uppercase;
+            transition: transform 0.2s ease;
+        }
+
+        #playAgainButton:hover {
+            opacity: 0.9;
+            transform: scale(1.1);
+        }
+
+        /* Sidebar for Active Player */
+        #activePlayerSidebar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #f4f4f4;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 20px;
+            text-align: center;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #activePlayerStatus {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        #statusDot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        #activePlayerName {
+            font-size: 20px;
+            color: #4CAF50;
+        }
+
+        /* Hide controls on larger screens */
+        @media (min-width: 768px) {
+            #controls {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #controls {
+                display: grid;
+                grid-template-columns: 60px 60px 60px;
+                grid-template-rows: 60px 60px 60px;
+                gap: 10px;
+                justify-content: center;
+                align-items: center;
+            }
+
+            #controls button {
+                width: 60px;
+                height: 60px;
+                border: none;
+                border-radius: 10px;
+                font-size: 18px;
+                font-family: 'Fredoka One', cursive;
+                cursor: pointer;
+                background-color: #333;
+                color: white;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            #controls button:active {
+                background-color: #555;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Welcome Screen -->
+    <div id="welcomeScreen">
+        <div id="welcomeMessage">Welcome to Snake Game!</div>
+        <input type="text" id="nameInput" placeholder="Enter your name" />
+        <button id="startButton">Start Game</button>
+    </div>
+
+    <!-- Active Player Sidebar -->
+    <div id="activePlayerSidebar" style="display:none;">
+        <div id="activePlayerName">Player: <span id="currentPlayerName">N/A</span></div>
+        <div id="activePlayerStatus">
+            <div id="statusDot" style="background-color: green;"></div>
+            <span id="statusText">Active</span>
+        </div>
+    </div>
+
+    <!-- Game Screen (Initially hidden) -->
+    <div id="gameScreen" style="display:none;">
+        <div id="gameTitle">Snake Game</div>
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+        <div id="scoreBoard">Score: 0</div>
+        <div id="gameOverScreen">
+            <div id="gameOverText">Game Over</div>
+            <button id="playAgainButton">Play Again</button>
+        </div>
+        <div id="controls">
+            <button id="upButton">↑</button>
+            <button id="leftButton">←</button>
+            <button id="downButton">↓</button>
+            <button id="rightButton">→</button>
+        </div>
+    </div>
+
+    <script>
+        // Welcome Screen Logic
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const nameInput = document.getElementById('nameInput');
+        const startButton = document.getElementById('startButton');
+        const gameScreen = document.getElementById('gameScreen');
+        const gameTitle = document.getElementById('gameTitle');
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        const activePlayerSidebar = document.getElementById('activePlayerSidebar');
+        const currentPlayerName = document.getElementById('currentPlayerName');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+
+        let currentPlayer = null;
+
+        startButton.addEventListener('click', function() {
+            const playerName = nameInput.value.trim();
+            if (playerName) {
+                currentPlayer = playerName;
+                currentPlayerName.textContent = playerName;
+                activePlayerSidebar.style.display = 'block';
+                welcomeMessage.textContent = `Welcome, ${playerName}!`;
+                setTimeout(() => {
+                    welcomeScreen.style.display = 'none';
+                    gameScreen.style.display = 'block';
+                    startGame();
+                }, 2000);
+            } else {
+                alert('Please enter your name.');
+            }
+        });
+
+        // Game Logic
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const playAgainButton = document.getElementById('playAgainButton');
+        const scoreBoard = document.getElementById('scoreBoard');
+        const controls = document.getElementById('controls');
+        const upButton = document.getElementById('upButton');
+        const downButton = document.getElementById('downButton');
+        const leftButton = document.getElementById('leftButton');
+        const rightButton = document.getElementById('rightButton');
+
+        let snake, direction, food, score, gameSpeed, gameInterval;
+
+        function startGame() {
+            snake = [{ x: 10, y: 10 }];
+            direction = { x: 1, y: 0 };
+            food = { x: Math.floor(Math.random() * 20), y: Math.floor(Math.random() * 20) };
+            score = 0;
+            updateScore();
+            gameSpeed = 200;
+            clearInterval(gameInterval);
+            gameOverScreen.style.display = 'none';
+            statusDot.style.backgroundColor = 'green'; // Reset status dot to green
+            statusText.textContent = 'Active'; // Reset status text to 'Active'
+            gameInterval = setInterval(gameLoop, gameSpeed);
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+        }
+
+        function update() {
+            const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+            if (head.x < 0 || head.x >= 20 || head.y < 0 || head.y >= 20 || snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+                gameOverScreen.style.display = 'flex';
+                clearInterval(gameInterval);
+                statusDot.style.backgroundColor = 'red';
+                statusText.textContent = 'Player is not active';
+                return;
+            }
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                updateScore();
+                food = { x: Math.floor(Math.random() * 20), y: Math.floor(Math.random() * 20) };
+            } else {
+                snake.pop();
+            }
+            snake.unshift(head);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'green';
+            snake.forEach(segment => ctx.fillRect(segment.x * 20, segment.y * 20, 18, 18));
+            ctx.fillStyle = 'red';
+            ctx.fillRect(food.x * 20, food.y * 20, 18, 18);
+        }
+
+        function updateScore() {
+            scoreBoard.textContent = `Score: ${score}`;
+        }
+
+        function handleDirectionChange(newDirection) {
+            if ((newDirection.x !== -direction.x || newDirection.y !== -direction.y)) {
+                direction = newDirection;
+            }
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowUp' && direction.y === 0) handleDirectionChange({ x: 0, y: -1 });
+            else if (event.key === 'ArrowDown' && direction.y === 0) handleDirectionChange({ x: 0, y: 1 });
+            else if (event.key === 'ArrowLeft' && direction.x === 0) handleDirectionChange({ x: -1, y: 0 });
+            else if (event.key === 'ArrowRight' && direction.x === 0) handleDirectionChange({ x: 1, y: 0 });
+        });
+
+        upButton.addEventListener('click', () => handleDirectionChange({ x: 0, y: -1 }));
+        downButton.addEventListener('click', () => handleDirectionChange({ x: 0, y: 1 }));
+        leftButton.addEventListener('click', () => handleDirectionChange({ x: -1, y: 0 }));
+        rightButton.addEventListener('click', () => handleDirectionChange({ x: 1, y: 0 }));
+
+        playAgainButton.addEventListener('click', function() {
+            startGame();
+            statusDot.style.backgroundColor = 'green'; // Reset status dot to green
+            statusText.textContent = 'Active'; // Reset status text to 'Active'
+        });
+    </script>
+</body>
+</html>
